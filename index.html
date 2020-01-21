@@ -1,0 +1,558 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<title>Back to Basics: Redux</title>
+
+	<link rel="stylesheet" href="css/reveal.css">
+	<!-- <link rel="stylesheet" href="css/theme/black.css"> -->
+
+	<!-- Theme used for syntax highlighting of code -->
+	<link rel="stylesheet" href="lib/css/zenburn.css">
+	<link rel="stylesheet" href="css/theme/blood.css" id="theme">
+	<!-- <link rel="stylesheet" href="lib/css/monokai.css"> -->
+	<style>
+		.line {
+			display: block;
+			opacity: 0.1;
+		}
+
+		.line.focus {
+			/* background: #fdf6e3; */
+			/* color: #657b83; */
+			opacity: 1;
+		}
+
+		/* 
+		.line.focus .hljs-comment,
+		.line.focus .hljs-quote {
+			color: #93a1a1;
+		} */
+
+		.show-all .line {
+			opacity: 1;
+		}
+
+		code {
+			tab-size: 2;
+		}
+
+		.small-code {
+			font-size: 1.2rem !important;
+		}
+
+		.reveal .slides section .fragment.current-only {
+			opacity: 1;
+			visibility: visible;
+			display: none;
+		}
+
+		.reveal .slides section .fragment.current-only.current-fragment {
+			display: block;
+		}
+	</style>
+	<!-- Printing and PDF exports -->
+	<script>
+		var link = document.createElement('link');
+		link.rel = 'stylesheet';
+		link.type = 'text/css';
+		link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+		document.getElementsByTagName('head')[0].appendChild(link);
+	</script>
+</head>
+
+<body>
+	<div class="reveal">
+		<div class="slides">
+			<section data-background="assets/redux.png">
+				<!-- <img src="assets/redux.png" height="100px" /> -->
+				<h3>Back to Basics:</h3>
+				<h1>Redux</h1>
+				<p>
+					<small>(with GIF's!)</small>
+				</p>
+			</section>
+			<section>
+				<h3>Topics:</h3>
+				<ul>
+					<li>Motivation</li>
+					<li>Functional Basics</li>
+					<li>What is redux</li>
+					<li>Quick Demo</li>
+					<li>Reasons to use it with React</li>
+					<li>Using it with React</li>
+					<li>Gotchas</li>
+					<li>Q&A</li>
+				</ul>
+			</section>
+			<section>
+				<h3>Motivation</h3>
+			</section>
+			<section>
+				<ul>
+					<li>Most people that start using React quickly face one of the biggest pain points of the library</li>
+					<li>Some look around for solutions, and find Redux</li>
+					<li>Unfortunately, Redux is not an easy concept to grasp</li>
+				</ul>
+			</section>
+			<section data-background="assets/homerReading.gif">
+				<h3>Fear not! We are here to help!</h3>
+			</section>
+			<section>But first...</section>
+			<section>
+				<h3>Functional Programming(*)</h3>
+				<p>* actually, just a thing or two</p>
+			</section>
+			<section>
+				<h3>
+					Pure functions
+				</h3>
+				<pre><code>// This is pure
+function(value) {
+	let result = 0
+	// (does something with value)
+	return result
+}
+// This is not pure 
+let outsideVar = 12
+function(value) {
+	// (does something with value)
+	let result = value + outsideVar
+	return result
+}
+</code></pre>
+				<p>
+					<span class='fragment current-only' data-code-focus="1-6">Pure (all values come from inside the function)</span>
+					<span class='fragment current-only' data-code-focus="7-14">Impure(uses a value from outside the function)</span>
+				</p>
+			</section>
+			<section>
+				<h3>Immutability</h3>
+				<pre><code>let myObj = {name: 'Leo', age: '42'};
+// AVOID: changing values inside an object:
+myObj.age = 41;
+// PREFER: recreate the object using the values:
+myObj = {...myObj, age: 41}
+// Or, non ES6 Style:
+myObj = Object.assign({}, myObj, {age: 41})
+				</code></pre>
+				<p>
+					<span class="fragment current-only" data-code-focus="1-3">Avoid changing the values inside your objects</span>
+					<span class="fragment current-only" data-code-focus="1,4-7">Prefer to recreate the object copying the values instead</span>
+				</p>
+			</section>
+			<section>
+				Now, back to Redux...
+			</section>
+			<section>
+				<h3>So, what is Redux?</h3>
+				<p>From the website:</p>
+				<q>Redux is a predictable
+					<span class='fragment highlight-red'>state container</span> for JavaScript apps.</q>
+			</section>
+			<section>
+				<h3> or, in image:</h3>
+				<img src='assets/reduxDiagram.png' />
+			</section>
+			<section data-background="assets/waitWhat.gif">
+				<h3>wait... what?</h3>
+			</section>
+			<section>
+				<h3>Little Demo</h3>
+				<p>(without React)</p>
+			</section>
+			<section>
+				<h3>HTML code</h3>
+				<pre><code class='show-all'>&lt;div class='container'&gt;
+	&lt;h1&gt;
+		&lt;span id='counter'&gt;0&lt;/span&gt;
+	&lt;/h1&gt;
+	&lt;div class='buttons'&gt;
+		&lt;button id='dec'&gt;-&lt;/button&gt;
+		&lt;button id='inc'&gt;+&lt;/button&gt;
+	&lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+			</section>
+			<section>
+				<h3>JS (vanilla) code</h3>
+				<pre><code>let counter = 0;
+const counterDisplay = document.getElementById('counter');
+const decButton = document.getElementById('dec');
+const incButton = document.getElementById('inc');
+decButton.addEventListener('click', () => {
+	counterDisplay.innerText = --counter;
+})
+incButton.addEventListener('click', () => {
+	counterDisplay.innerText = ++counter;
+})
+						</code></pre>
+				<p>
+					<span class="fragment current-only" data-code-focus="1">State</span>
+					<span class="fragment current-only" data-code-focus="2-4">Element Selectors</span>
+					<span class="fragment current-only" data-code-focus="5-10">Event Listeners (and state modifiers)</span>
+				</p>
+			</section>
+			<section>
+				<h3>Issues</h3>
+				<ul>
+					<li class="fragment">The app state is a global variable</li>
+					<li class="fragment">Event listener is also responsible for mutating the state (separation of concerns)</li>
+				</ul>
+			</section>
+			<section>
+				<h3>Introducing... BAD-Dux!</h3>
+				<img src="assets/facepalm.gif" />
+			</section>
+			<section>
+				<h4>Reducer</h4>
+				<pre><code class='small-code show-all'>let defaultState = { counter: 0 }
+let reducer = (state = defaultState, action) => {
+	switch (action.type) {
+		case 'INC':
+			return { counter: state.counter + 1 };
+		case 'DEC':
+			return { counter: state.counter - 1 };
+		default:
+			return state
+	}
+}
+</code></pre>
+				<p>
+					<span>Reducer: pure function that receives the current state and a action, and based on the action, returns a new state.</span>
+				</p>
+			</section>
+			<section>
+				<h4>The 'Bad-Dux' object:</h4>
+				<pre><code class='small-code'>let store = {
+	state: null,
+	listeners: [],
+	getState() { return this.state },
+	subscribe(callback) {
+		this.listeners = [...this.listeners, callback]
+	}
+	dispatch(action) {
+		let newstate = this.reducer(this.state, action)
+		if (newstate !== this.state) {
+			this.state = newstate
+			this.listeners.forEach(listener => listener())
+		}	
+	},
+}
+</code></pre>
+
+				<p>
+					<span class="fragment current-only" data-code-focus="1-3, 15">
+						Creating the store and setting some default values.
+					</span>
+					<span class="fragment current-only" data-code-focus="4">
+						Just a getter method.
+					</span>
+					<span class="fragment current-only" data-code-focus="5-7">
+						Function that adds a callback to the list of listeners.
+					</span>
+					<span class="fragment current-only" data-code-focus="8-14">
+						Dispatcher function
+					</span>
+				</p>
+			</section>
+			<section>
+				<pre><code class='small-code' >dispatch(action) {
+	let newState = this.reducer(this.state, action)
+	if (newState !== this.state) {
+		this.state = newState
+		this.listeners.forEach(listener => listener())
+	}	
+}
+</code></pre>
+				<p>
+					<span class="fragment current-only" data-code-focus="2">
+						Calls the reducer with the current state, and the requested action
+					</span>
+					<span class="fragment" data-code-focus="3">
+						If the state has changed:
+					</span>
+				</p>
+				<ul>
+					<li class="fragment" data-code-focus="4">Changes the state</li>
+					<li class="fragment" data-code-focus="5">Executes every function inside the
+						<em>listeners</em> array</li>
+				</ul>
+			</section>
+
+			<section>
+				<pre><code class='small-code'>let defaultState = { counter: 0 }
+let reducer = (state = defaultState, action) => {
+	switch (action.type) {
+		case 'INC':
+			return { counter: state.counter + 1 };
+		case 'DEC':
+			return { counter: state.counter - 1 };
+		default:
+			return state
+	}
+}
+store.reducer = reducer
+let changeCounter = () => {
+	document.getElementById('counter').innerText = store.getState().counter
+}
+store.subscribe(changeCounter)
+document.getElementById('dec')
+	.addEventListener('click', () => store.dispatch({type: 'DEC'}));
+document.getElementById('inc')
+	.addEventListener('click', () => store.dispatch({type: 'INC'}));
+					</code></pre>
+				<p>
+					<span class="fragment current-only" data-code-focus="1">Store default state</span>
+					<span class="fragment current-only" data-code-focus="2-12">Creating reducer</span>
+					<span class="fragment current-only" data-code-focus="13-15">Callback function (observer)</span>
+					<span class="fragment current-only" data-code-focus="16">Subscribing</span>
+					<span class="fragment current-only" data-code-focus="17-20">Event Listeners (that dispatch actions)</span>
+				</p>
+			</section>
+			<section>
+				<h4>Advantages</h4>
+				<ul>
+					<li class="fragment">Separation of concerns:
+						<ul>
+							<li>Events only dispatch actions</li>
+							<li>Reducers only generate a new state (based on the old)</li>
+							<li>The store is single responsible for changing the state</li>
+						</ul>
+					</li>
+					<li class="fragment">Reusable: create a new reducer and observer and you are ready to go!</li>
+				</ul>
+			</section>
+			<section>
+				<h3>Now back to Redux!</h3>
+			</section>
+			<section>
+				<pre><code class='show-all'>let store = {
+		state: null,
+		listeners: [],
+		getState() { return this.state },
+		subscribe(callback) {
+			this.listeners = [...this.listeners, callback]
+		}
+		dispatch(action) {
+			let newstate = this.reducer(this.state, action)
+			if (newstate !== this.state) {
+				this.state = newstate
+				this.listeners.forEach(listener => listener())
+			}	
+		},
+	}
+	store.reducer = reducer	
+	</code></pre>
+				<p>
+					Just change this...
+				</p>
+			</section>
+			<section>
+				<pre><code class='show-all'>&lt;script src="redux.min.js"&gt;</script>
+				</code></pre>
+				<pre><code class='show-all'>let store = window.Redux.createStore(reducer)</code></pre>
+				<p>
+					For this!
+				</p>
+			</section>
+
+
+
+			<section>
+				<h3>Why use it with React?</h3>
+			</section>
+			<section>
+				<ul>
+					<li>React is (possibly) the main front-end library at the moment.</li>
+					<li class="fragment">Makes it easy to split your interface into components</li>
+				</ul>
+				<h4 class="fragment">but also...</h4>
+				<ul>
+					<li class="fragment">Makes it hard to control the data flow in your application</li>
+				</ul>
+			</section>
+			<section>
+				<img src='assets/componentTree.png' height='650px'>
+			</section>
+			<section>
+				<h3>Many solutions exists:</h3>
+				<ul>
+					<li class="fragment">Passing props</li>
+					<li class="fragment">
+						<span class="fragment highlight-red">Using Context (but please, don't!)</span>
+					</li>
+					<li class="fragment">
+						<span class="fragment highlight-green">Using a state management library (like Redux!)</span>
+					</li>
+				</ul>
+			</section>
+			<section>
+				<h3>Using Redux with React</h3>
+			</section>
+			<section>
+				<h3>
+					Disclaimer:
+				</h3>
+				<p>This is just a (tiny!) introduction on how to implement Redux in a small app.</p>
+				<p>In a real-world application, there are much more to do (mapDispatchToProps, createActions functions, compose reducers,
+					middleware, memoise, ...)</p>
+			</section>
+			<section>
+				<h4>Install redux and react-redux</h4>
+				<pre><code class='show-all'>yarn add redux react-redux</code></pre>
+			</section>
+			<section>
+				<h4>Create your reducer (as seen before)...</h4>
+				<pre><code class='small-code show-all'>let defaultState = { counter: 0 }
+let reducer = (state = defaultState, action) => {
+	switch (action.type) {
+		case 'ADD_TODO':
+			return { 
+				...state, 
+				todos: [...todos, action.newTodo]
+			}
+		case 'REMOVE_TODO':
+			return { 
+				...state, 
+				todos: todos.filter(todo => todo !== action.removedTodo) 
+			};
+		default:
+			return state
+	}
+}</code></pre>
+			</section>
+			<section>
+				<h4>In your index.js</h4>
+				<pre><code class='small-code'>import React from 'react'
+import { render } from 'react-dom'
+import { Provider } from 'react-redux'
+import { createStore } from 'redux'
+import reducer from './reducers'
+import App from './components/App'
+let store = createStore(reducer)
+render(
+  &lt;Provider store={store}&gt;
+    &lt;App /&gt;
+  &lt;/Provider&gt;,
+  document.getElementById('root')
+)
+</code></pre>
+				<p>
+					<span class='fragment current-only current-visible' data-code-focus="4,5,7">Create your store (also as seen before)</span>
+					<span class='fragment current-only' data-code-focus="3">Import the component Provider from react-redux</span>
+					<span class='fragment current-only' data-code-focus="6,9-11">Wrap your App inside the Provider</span>
+				</p>
+			</section>
+
+			<section>
+				<h4>In your component</h4>
+				<pre><code class='small-code'>import React, {Component} from 'react'
+import {connect} from 'react-redux'
+(...)
+class MyComponent extends Component {
+	(...)
+	handleClickIncButton = (ev) => {
+		this.dispatch({type: 'ADD_TODO', newTodo: this.state.newTodo})
+	}
+	(...)
+	render() {
+		const {todos} = this.props
+		return (...)
+	}
+}
+const mapStateToProps = (state) => ({todos: state.todos})
+export default connect(MapStateToProps)(MyComponent)
+</code></pre>
+				<p>
+					<span class="fragment current-only" data-code-focus="2">First, import 'connect' from react-redux</span>
+					<span class="fragment current-only" data-code-focus="15">Then, create a mapping between your store and the props that will be passed</span>
+					<span class="fragment current-only" data-code-focus="16">Finally, connect this mapping to your component</span>
+				</p>
+			</section>
+			<section>
+				<h4>In your component</h4>
+				<pre><code class='small-code'>import React, {Component} from 'react'
+import {connect} from 'react-redux'
+(...)
+class MyComponent extends Component {
+	(...)
+	handleAddTodoButton = (ev) => {
+		this.dispatch({type: 'ADD_TODO', value: this.state.newTodo})
+	}
+	(...)
+	render() {
+		const {todos} = this.props
+		return (...)
+	}
+}
+const mapStateToProps = (state) => ({todos: state.todos})
+export default connect(MapStateToProps)(MyComponent)
+</code></pre>
+				<p>
+					<span class="fragment current-only" data-code-focus="11">You can access the data from your store as a 'prop'</span>
+					<span class="fragment current-only" data-code-focus="7">And also can dispatch actions using 'this.props.dispatch'
+					</span>
+				</p>
+			</section>
+
+			<section>
+				<h4>Gotchas</h4>
+				<ul>
+					<li class="fragment">Remember: *do not* mutate the state inside the reducer (create a new state and return it instead)</li>
+					<li class="fragment">Reducers should always be pure functions</li>
+					<li class="fragment">The actions are always objects, that describe what to do and (if necessary) what data is to be manipulated.</li>
+				</ul>
+			</section>
+
+			<section>
+				<h3>More information</h3>
+				<ul>
+					<li>Redux:
+						<a href="http://redux.js.org">redux.js.org</a>
+					</li>
+					<li>This Presentation:
+						<a href="http://weblers.net/presentations/redux">
+							weblers.net/presentations/redux
+						</a>
+					</li>
+				</ul>
+			</section>
+
+			<section style="text-align: left;">
+				<h1>Thank you</h1>
+				<p>Leonardo Rota-Rossi</p>
+				<p>leo@weblers.net</p>
+			</section>
+
+			<script src="lib/js/head.min.js"></script>
+			<script src="js/reveal.js"></script>
+
+			<script>
+				// More info about config & dependencies:
+				// - https://github.com/hakimel/reveal.js#configuration
+				// - https://github.com/hakimel/reveal.js#dependencies
+				Reveal.initialize({
+					dependencies: [
+						{ src: 'plugin/markdown/marked.js' },
+						{ src: 'plugin/markdown/markdown.js' },
+						{ src: 'plugin/notes/notes.js', async: true },
+						{ src: 'lib/js/highlight.min.js' },
+						{
+							src: 'lib/js/reveal-code-focus.js',
+							async: true,
+							callback: function () {
+								RevealCodeFocus();
+							}
+						}
+						// { src: 'plugin/highlight/highlight.js', async: true, callback: function () { hljs.initHighlightingOnLoad(); } },
+					],
+					history: true
+				});
+			</script>
+</body>
+
+</html>
